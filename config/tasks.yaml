@@ -1,5 +1,5 @@
 ---
 tasks:
   - name: restart task api
-    command: docker compose restart task-api
+    command: /usr/local/bin/docker compose restart task-api
 ...
