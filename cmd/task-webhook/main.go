@@ -24,7 +24,7 @@ func main() {
 
 	// TODO: Consider adding structured logging
 	mux := http.NewServeMux()
-	mux.Handle("/", controllers.NewTaskController())
+	mux.Handle("/", controllers.NewTaskController(nil))
 
 	//wrappedMux := middleware.WrapLogger(mux)
 

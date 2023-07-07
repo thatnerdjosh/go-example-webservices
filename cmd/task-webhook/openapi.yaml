@@ -27,6 +27,5 @@ components:
     TaskResponse:
       type: object
       properties:
-        id:
-          type: string
-          description: The task ID.
+        success:
+          type: boolean

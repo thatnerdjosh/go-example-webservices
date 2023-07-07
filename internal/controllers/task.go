@@ -7,6 +7,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os/exec"
+	"strings"
 
 	"github.com/thatnerdjosh/example-webservices/internal/config"
 	"github.com/thatnerdjosh/example-webservices/internal/models"
@@ -19,6 +21,7 @@ type TaskController struct {
 func NewTaskController(taskConfig *config.TaskConfig) TaskController {
 	var ctrl TaskController
 
+	ctrl.config = &config.TaskConfig{}
 	if taskConfig != nil {
 		ctrl.config = taskConfig
 	}
@@ -72,11 +75,28 @@ func (t TaskController) ExecuteTask(w http.ResponseWriter, r *http.Request) {
 	if taskItem == nil {
 		// Task not found. Return 404
 		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"error":   "Task not found",
+			"success": false,
+		})
 		return
 	}
 
-	// w.WriteHeader(http.StatusOK)
-	// json.NewEncoder(w).Encode(&resp)
+	// NOTE: typically not recommended, but should be ok since it is driven entirely by a config file (no user input).
+	cmdParts := strings.Split(taskItem.Command, " ")
+	cmd := exec.Command(cmdParts[0], cmdParts[1:]...)
+
+	_, err = cmd.Output()
+	if err != nil {
+		fmt.Println("could not run command: ", err)
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	// TODO: Use a struct for the response structures
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+	})
 }
 
 func badRequest(w http.ResponseWriter) {
@@ -84,15 +104,17 @@ func badRequest(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusBadRequest)
 
 	// TODO: Add error translation layer
-	json.NewEncoder(w).Encode(map[string]string{
-		"error": "Malformed request",
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"error":   "Malformed request",
+		"success": false,
 	})
 }
 
 func forbidden(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusForbidden)
-	json.NewEncoder(w).Encode(map[string]string{
-		"error": "Not authenticated",
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"error":   "Not authenticated",
+		"success": false,
 	})
 }
 
