@@ -8,10 +8,21 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/thatnerdjosh/example-webservices/internal/config"
 	"github.com/thatnerdjosh/example-webservices/internal/models"
 )
 
-type TaskController struct{}
+type TaskController struct {
+	config config.TaskConfig
+}
+
+func NewTaskController() TaskController {
+	ctrl := TaskController{
+		config: config.TaskConfig{},
+	}
+	ctrl.config.MustLoad()
+	return ctrl
+}
 
 func (t TaskController) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
