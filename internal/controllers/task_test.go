@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/thatnerdjosh/example-webservices/internal/config"
 	"github.com/thatnerdjosh/example-webservices/internal/controllers"
 )
 
@@ -21,7 +22,9 @@ func baseChecks(t *testing.T, rr *httptest.ResponseRecorder) {
 }
 
 func TestNotFoundHandler(t *testing.T) {
-	controller := controllers.TaskController{}
+	controller := controllers.NewTaskController(&config.TaskConfig{
+		Path: "../../config/tasks.yaml",
+	})
 	t.Run("404 - Not Found", func(t *testing.T) {
 		req, err := http.NewRequest(
 			"POST", "/abc123", nil)
@@ -44,7 +47,9 @@ func TestNotFoundHandler(t *testing.T) {
 }
 
 func TestExecuteTask(t *testing.T) {
-	controller := controllers.TaskController{}
+	controller := controllers.NewTaskController(&config.TaskConfig{
+		Path: "../../config/tasks.yaml",
+	})
 
 	// TODO: Extract to contract tests
 	t.Run("403 - not authenticated", func(t *testing.T) {
@@ -69,7 +74,7 @@ func TestExecuteTask(t *testing.T) {
 		}
 	})
 
-	t.Run("400 - run invalid task", func(t *testing.T) {
+	t.Run("400 - invalid request body", func(t *testing.T) {
 		// TODO: Extract to fixtures
 		data := `{"foo":1}`
 		req, err := http.NewRequest(
@@ -90,6 +95,32 @@ func TestExecuteTask(t *testing.T) {
 			t.Errorf(
 				"expected status code %d, received %d",
 				http.StatusBadRequest,
+				rr.Code,
+			)
+		}
+	})
+
+	t.Run("404 - task does not exist", func(t *testing.T) {
+		// TODO: Extract to fixtures
+		data := `{"name": "foobar"}`
+		req, err := http.NewRequest(
+			"POST", "/", bytes.NewBuffer([]byte(data)))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		req.Header.Add("Authorization", "foobar")
+
+		rr := httptest.NewRecorder()
+		handler := http.Handler(controller)
+
+		handler.ServeHTTP(rr, req)
+
+		baseChecks(t, rr)
+		if rr.Code != http.StatusNotFound {
+			t.Errorf(
+				"expected status code %d, received %d",
+				http.StatusNotFound,
 				rr.Code,
 			)
 		}
