@@ -11,4 +11,3 @@ RUN CGO_ENABLED=0 \
 # Create image
 FROM scratch
 COPY --from=build-env /app/task-webhook /
-ENTRYPOINT ["/task-webhook"]

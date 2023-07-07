@@ -1,0 +1,5 @@
+---
+tasks:
+  - name: restart task api
+    command: docker compose restart task-api
+...
