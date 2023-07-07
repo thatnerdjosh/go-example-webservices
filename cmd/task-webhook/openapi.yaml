@@ -8,7 +8,7 @@ servers:
 paths:
   /:
     post:
-      description: Executes a task 
+      description: Executes a task
       responses:
         "200":
           description: Successful response
@@ -28,5 +28,5 @@ components:
       type: object
       properties:
         id:
-          type: string 
+          type: string
           description: The task ID.
