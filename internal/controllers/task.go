@@ -39,24 +39,26 @@ func (t TaskController) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (t TaskController) ExecuteTask(w http.ResponseWriter, r *http.Request) {
 	var err error
 	if !authenticated(r) {
-		err = errors.New("request was not authorized")
+		err = errors.New("request was not authenticated")
 		log.Println(err)
 
 		forbidden(w)
 		return
 	}
-
-	// if err != nil {
-	// 	// Error processing request (e.g., timeout), return 500
-	// 	http.Error(w, err.Error(), 500)
-	// 	return
-	// }
-
 	var task models.TaskRequest
-	_ = task.Process(t.config, r)
-	// if err != nil {
+	err = task.Process(t.config, r)
 
-	// }
+	// TODO: Add error translation layer
+	if err != nil {
+		// FIXME: Get this code from an error struct
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   err.Error(),
+		})
+
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
 

@@ -19,6 +19,12 @@ type TaskRequest struct {
 
 func (t *TaskRequest) Process(cfg *config.TaskConfig, r *http.Request) error {
 	b, _ := io.ReadAll(r.Body)
+	// if err != nil {
+	// 	// Error processing request (e.g., timeout), return 500
+	// 	http.Error(w, err.Error(), 500)
+	// 	return
+	// }
+
 	defer r.Body.Close()
 
 	err := t.load(b)
