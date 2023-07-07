@@ -1,0 +1,7 @@
+version: '3.1'
+services:
+  task-api:
+    build: .
+    entrypoint: /task-webhook
+    ports:
+      - ${TASK_API_PORT}:8080
