@@ -1,5 +1,5 @@
 package models
 
-type Task struct {
-	Id string `json:"id"`
+type TaskRequest struct {
+	Name string `json:"name"`
 }

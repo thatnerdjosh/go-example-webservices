@@ -13,13 +13,16 @@ import (
 )
 
 type TaskController struct {
-	config config.TaskConfig
+	config *config.TaskConfig
 }
 
-func NewTaskController() TaskController {
-	ctrl := TaskController{
-		config: config.TaskConfig{},
+func NewTaskController(taskConfig *config.TaskConfig) TaskController {
+	var ctrl TaskController
+
+	if taskConfig != nil {
+		ctrl.config = taskConfig
 	}
+
 	ctrl.config.MustLoad()
 	return ctrl
 }
@@ -52,9 +55,10 @@ func (t TaskController) ExecuteTask(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
-	var task models.Task
+	// TODO: Extract logic to models
+	var task models.TaskRequest
 	err = json.Unmarshal(b, &task)
-	if task.Id == "" {
+	if task.Name == "" {
 		err = fmt.Errorf("malformed request, received %v", task)
 		log.Println(err)
 	}
@@ -64,11 +68,12 @@ func (t TaskController) ExecuteTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// if resp == nil {
-	// 	// Task not found. Return 404
-	// 	w.WriteHeader(http.StatusNotFound)
-	// 	return
-	// }
+	taskItem := t.config.GetTask(task.Name)
+	if taskItem == nil {
+		// Task not found. Return 404
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 
 	// w.WriteHeader(http.StatusOK)
 	// json.NewEncoder(w).Encode(&resp)
