@@ -53,10 +53,40 @@ func (t TaskController) ExecuteTask(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	var task models.TaskRequest
-	_ = task.Process(t.config, r)
-	// if err != nil {
+	err = task.Process(t.config, r)
 
-	// }
+	// TODO: Extract to separate handler to reduce complexity of this one.
+	if err != nil {
+		switch {
+		case errors.Is(err, models.ErrTaskNotFound):
+			// Task not found. Return 404
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"error":   err.Error(),
+				"success": false,
+			})
+
+			return
+		case errors.Is(err, models.ErrBadData):
+			// Invalid data provided, return 400
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"error":   err.Error(),
+				"success": false,
+			})
+
+			return
+		default:
+			// Unhandled error, assume ISE for now
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"error":   "An unexpected error has occurred.",
+				"success": false,
+			})
+
+			return
+		}
+	}
 
 	w.WriteHeader(http.StatusOK)
 
