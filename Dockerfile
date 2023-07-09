@@ -1,4 +1,5 @@
 FROM --platform=${BUILDPLATFORM:-linux/amd64} golang as build-env
+LABEL org.opencontainers.image.source=https://github.com/thatnerdjosh/go-example-webservices
 
 WORKDIR /app
 COPY . .
