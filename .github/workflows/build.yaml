@@ -1,7 +1,11 @@
 # REF: https://community.ibm.com/community/user/powerdeveloper/blogs/siddhesh-ghadi/2023/02/08/build-multi-arch-images-on-github-actions-with-bui
 ---
 name: Build Multi-arch Image
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 jobs:
   build:
     name: Build image
