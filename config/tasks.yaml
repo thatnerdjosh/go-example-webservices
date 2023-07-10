@@ -8,4 +8,6 @@ dependencies:
 tasks:
   - name: restart task api
     command: docker compose restart task-webhook
+  - name: restart auth api
+    command: docker compose restart auth
 ...
