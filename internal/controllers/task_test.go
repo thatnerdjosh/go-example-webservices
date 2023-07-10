@@ -11,6 +11,16 @@ import (
 	"github.com/thatnerdjosh/example-webservices/internal/controllers"
 )
 
+type MockAuthHttpClient struct{}
+
+func (m *MockAuthHttpClient) Get(url string) (*http.Response, error) {
+	response := &http.Response{
+		StatusCode: 200,
+	}
+
+	return response, nil
+}
+
 func baseChecks(t *testing.T, rr *httptest.ResponseRecorder) {
 	contentType := rr.Header().Get("Content-Type")
 	if contentType != "application/json" {
@@ -24,7 +34,7 @@ func baseChecks(t *testing.T, rr *httptest.ResponseRecorder) {
 func TestNotFoundHandler(t *testing.T) {
 	controller := controllers.NewTaskController(&config.TaskConfig{
 		ConfigPath: "../../config/tasks.yaml",
-	})
+	}, &MockAuthHttpClient{})
 	t.Run("404 - Not Found", func(t *testing.T) {
 		req, err := http.NewRequest(
 			"POST", "/abc123", nil)
@@ -49,7 +59,7 @@ func TestNotFoundHandler(t *testing.T) {
 func TestExecuteTask(t *testing.T) {
 	controller := controllers.NewTaskController(&config.TaskConfig{
 		ConfigPath: "../../config/tasks.yaml",
-	})
+	}, &MockAuthHttpClient{})
 
 	// TODO: Extract to contract tests
 	t.Run("403 - not authenticated", func(t *testing.T) {
@@ -126,27 +136,29 @@ func TestExecuteTask(t *testing.T) {
 		}
 	})
 
-	// t.Run("200 - execute valid task", func(t *testing.T) {
-	// 	// TODO: Extract to fixtures
-	// 	data := `{"id": "abc123"}`
-	// 	req, err := http.NewRequest(
-	// 		"POST", "/", bytes.NewBuffer([]byte(data)))
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
+	t.Run("200 - execute valid task", func(t *testing.T) {
+		// TODO: Extract to fixtures
+		data := `{"name": "restart task api"}`
+		req, err := http.NewRequest(
+			"POST", "/", bytes.NewBuffer([]byte(data)))
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	// 	rr := httptest.NewRecorder()
-	// 	handler := http.Handler(controller)
+		req.Header.Add("Authorization", "foobar")
 
-	// 	handler.ServeHTTP(rr, req)
+		rr := httptest.NewRecorder()
+		handler := http.Handler(controller)
 
-	// 	baseChecks(t, rr)
-	// 	if rr.Code != http.StatusOK {
-	// 		t.Errorf(
-	// 			"expected status code %d, received %d",
-	// 			http.StatusOK,
-	// 			rr.Code,
-	// 		)
-	// 	}
-	// })
+		handler.ServeHTTP(rr, req)
+
+		baseChecks(t, rr)
+		if rr.Code != http.StatusOK {
+			t.Errorf(
+				"expected status code %d, received %d",
+				http.StatusOK,
+				rr.Code,
+			)
+		}
+	})
 }

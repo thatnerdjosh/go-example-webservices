@@ -10,17 +10,24 @@ import (
 	"github.com/thatnerdjosh/example-webservices/internal/models"
 )
 
-type TaskController struct {
-	config *config.TaskConfig
+type HttpClient interface {
+	Get(string) (*http.Response, error)
 }
 
-func NewTaskController(taskConfig *config.TaskConfig) TaskController {
+type TaskController struct {
+	config *config.TaskConfig
+	client HttpClient
+}
+
+func NewTaskController(taskConfig *config.TaskConfig, client HttpClient) TaskController {
 	var ctrl TaskController
 
 	ctrl.config = &config.TaskConfig{}
 	if taskConfig != nil {
 		ctrl.config = taskConfig
 	}
+
+	ctrl.client = client
 
 	ctrl.config.MustLoad()
 	return ctrl
@@ -106,6 +113,10 @@ func (t TaskController) authenticated(r *http.Request) (bool, error) {
 		return false, nil
 	}
 
-	resp, err := http.Get(t.config.GetAuthAPIURL())
-	return resp.StatusCode == http.StatusOK, err
+	resp, err := t.client.Get(t.config.GetAuthAPIURL())
+	if err != nil {
+		return false, err
+	}
+
+	return resp.StatusCode == http.StatusOK, nil
 }
