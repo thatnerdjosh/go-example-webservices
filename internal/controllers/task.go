@@ -38,7 +38,12 @@ func (t TaskController) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (t TaskController) ExecuteTask(w http.ResponseWriter, r *http.Request) {
 	var err error
-	if !authenticated(r) {
+	authenticated, err := t.authenticated(r)
+	if err != nil {
+		log.Println(err)
+	}
+
+	if !authenticated {
 		err = errors.New("request was not authorized")
 		log.Println(err)
 
@@ -94,4 +99,13 @@ func (t TaskController) ExecuteTask(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
 	})
+}
+
+func (t TaskController) authenticated(r *http.Request) (bool, error) {
+	if r.Header.Get("Authorization") == "" {
+		return false, nil
+	}
+
+	resp, err := http.Get(t.config.GetAuthAPIURL())
+	return resp.StatusCode == http.StatusOK, err
 }

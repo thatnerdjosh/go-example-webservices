@@ -23,7 +23,7 @@ func baseChecks(t *testing.T, rr *httptest.ResponseRecorder) {
 
 func TestNotFoundHandler(t *testing.T) {
 	controller := controllers.NewTaskController(&config.TaskConfig{
-		Path: "../../config/tasks.yaml",
+		ConfigPath: "../../config/tasks.yaml",
 	})
 	t.Run("404 - Not Found", func(t *testing.T) {
 		req, err := http.NewRequest(
@@ -48,7 +48,7 @@ func TestNotFoundHandler(t *testing.T) {
 
 func TestExecuteTask(t *testing.T) {
 	controller := controllers.NewTaskController(&config.TaskConfig{
-		Path: "../../config/tasks.yaml",
+		ConfigPath: "../../config/tasks.yaml",
 	})
 
 	// TODO: Extract to contract tests
@@ -149,5 +149,4 @@ func TestExecuteTask(t *testing.T) {
 	// 		)
 	// 	}
 	// })
-
 }
