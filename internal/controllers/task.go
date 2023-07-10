@@ -10,17 +10,24 @@ import (
 	"github.com/thatnerdjosh/example-webservices/internal/models"
 )
 
-type TaskController struct {
-	config *config.TaskConfig
+type HttpClient interface {
+	Get(string) (*http.Response, error)
 }
 
-func NewTaskController(taskConfig *config.TaskConfig) TaskController {
+type TaskController struct {
+	config *config.TaskConfig
+	client HttpClient
+}
+
+func NewTaskController(taskConfig *config.TaskConfig, client HttpClient) TaskController {
 	var ctrl TaskController
 
 	ctrl.config = &config.TaskConfig{}
 	if taskConfig != nil {
 		ctrl.config = taskConfig
 	}
+
+	ctrl.client = client
 
 	ctrl.config.MustLoad()
 	return ctrl
@@ -38,7 +45,12 @@ func (t TaskController) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (t TaskController) ExecuteTask(w http.ResponseWriter, r *http.Request) {
 	var err error
-	if !authenticated(r) {
+	authenticated, err := t.authenticated(r)
+	if err != nil {
+		log.Println(err)
+	}
+
+	if !authenticated {
 		err = errors.New("request was not authorized")
 		log.Println(err)
 
@@ -94,4 +106,17 @@ func (t TaskController) ExecuteTask(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
 	})
+}
+
+func (t TaskController) authenticated(r *http.Request) (bool, error) {
+	if r.Header.Get("Authorization") == "" {
+		return false, nil
+	}
+
+	resp, err := t.client.Get(t.config.GetAuthAPIURL())
+	if err != nil {
+		return false, err
+	}
+
+	return resp.StatusCode == http.StatusOK, nil
 }

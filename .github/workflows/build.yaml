@@ -25,4 +25,4 @@ jobs:
 
       - name: Build & Push Image
         run: |
-          docker buildx build --push --platform linux/amd64,linux/ppc64le --tag ghcr.io/thatnerdjosh/go-example-webservices:latest .
+          docker buildx build --push --platform linux/amd64,linux/arm64 --tag ghcr.io/thatnerdjosh/go-example-webservices:latest .
