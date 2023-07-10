@@ -43,5 +43,4 @@ kill $(jobs -p)
 * When task-webhook is run in a container it can not restart itself. This would require external orchestration to work properly.
   * Potential workaround would be to set `DOCKER_HOST`, but if it results in restarting itself it will remain stopped.
 * Currently all the microservices are bundled together into one image, these should be separated out.
-* Authentication is currently mocked out simply looking for the authentication header, this should make a call to an auth service.
 * Logging needs improvement/translation layer implemented.
