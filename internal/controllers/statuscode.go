@@ -23,9 +23,3 @@ func forbidden(w http.ResponseWriter) {
 		"success": false,
 	})
 }
-
-func authenticated(r *http.Request) bool {
-	// Authentication
-	// TODO: HTTP request to auth server
-	return r.Header.Get("Authorization") != ""
-}

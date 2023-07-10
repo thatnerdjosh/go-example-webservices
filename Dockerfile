@@ -9,6 +9,12 @@ ENV GOARCH $TARGETARCH
 RUN CGO_ENABLED=0 \
     go build -ldflags="-s -w" -o task-webhook ./cmd/task-webhook/main.go
 
-# Create image
-FROM scratch
-COPY --from=build-env /app/task-webhook /
+# TODO: Extract to separate image
+RUN CGO_ENABLED=0 \
+    go build -ldflags="-s -w" -o auth ./cmd/auth/main.go
+
+FROM docker:cli
+WORKDIR /opt/go-example-webservices
+COPY ./docker-compose.yaml .
+COPY --from=build-env /app/task-webhook .
+COPY --from=build-env /app/auth .

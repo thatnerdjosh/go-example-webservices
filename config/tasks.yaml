@@ -1,5 +1,11 @@
 ---
+dependencies:
+  authAPI:
+    host: auth
+    port: 8080
+    tls: false
+
 tasks:
   - name: restart task api
-    command: /usr/local/bin/docker compose restart task-api
+    command: docker compose stop task-webhook
 ...
