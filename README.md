@@ -9,8 +9,6 @@ This repository provides some examples of web microservices built in Golang.
   * Task webhook service
   * Auth stub service
 
-## Build/Publish docker image
-
 ## Run
 Using `docker-compose.yaml`:
 
