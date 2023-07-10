@@ -37,7 +37,14 @@ nohup go run cmd/task-webhook/main.go &> task-webhook.log &
 kill $(jobs -p)
 ```
 
+## Example request
+
+```bash
+curl localhost:8080 -X POST -H "Authorization: 12" -d '{"name": "restart auth api"}'
+```
+
 ## Known Limitations
+
 * When task-webhook is run in a container it can not restart itself. This would require external orchestration to work properly.
   * Potential workaround would be to set `DOCKER_HOST`, but if it results in restarting itself it will remain stopped.
 * Currently all the microservices are bundled together into one image, these should be separated out.
