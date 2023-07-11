@@ -14,10 +14,20 @@ type HttpClient interface {
 	Get(string) (*http.Response, error)
 }
 
+type TaskResponse struct {
+	status  int
+	ErrData string `json:"error,omitempty"`
+	Success bool   `json:"success"`
+}
+
 type TaskController struct {
 	config *config.TaskConfig
 	client HttpClient
 }
+
+var (
+	ErrUnauthorized = errors.New("request was not authorized")
+)
 
 func NewTaskController(taskConfig *config.TaskConfig, client HttpClient) TaskController {
 	var ctrl TaskController
@@ -46,66 +56,22 @@ func (t TaskController) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (t TaskController) ExecuteTask(w http.ResponseWriter, r *http.Request) {
 	var err error
 	authenticated, err := t.authenticated(r)
-	if err != nil {
-		log.Println(err)
-	}
-
-	if !authenticated {
-		err = errors.New("request was not authorized")
-		log.Println(err)
-
-		forbidden(w)
+	if err != nil || !authenticated {
+		handle(ErrUnauthorized, w)
 		return
 	}
 
-	// if err != nil {
-	// 	// Error processing request (e.g., timeout), return 500
-	// 	http.Error(w, err.Error(), 500)
-	// 	return
-	// }
-
 	var task models.TaskRequest
 	err = task.Process(t.config, r)
-
-	// TODO: Extract to separate handler to reduce complexity of this one.
 	if err != nil {
-		switch {
-		case errors.Is(err, models.ErrTaskNotFound):
-			// Task not found. Return 404
-			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode(map[string]interface{}{
-				"error":   err.Error(),
-				"success": false,
-			})
-
-			return
-		case errors.Is(err, models.ErrBadData):
-			// Invalid data provided, return 400
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]interface{}{
-				"error":   err.Error(),
-				"success": false,
-			})
-
-			return
-		default:
-			// Unhandled error, assume ISE for now
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(map[string]interface{}{
-				"error":   "An unexpected error has occurred.",
-				"success": false,
-			})
-
-			return
-		}
+		handle(err, w)
+		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-
-	// TODO: Use a struct for the response structures
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-	})
+	TaskResponse{
+		status:  http.StatusOK,
+		Success: true,
+	}.WriteJSON(w)
 }
 
 func (t TaskController) authenticated(r *http.Request) (bool, error) {
@@ -119,4 +85,48 @@ func (t TaskController) authenticated(r *http.Request) (bool, error) {
 	}
 
 	return resp.StatusCode == http.StatusOK, nil
+}
+
+func (tr TaskResponse) WriteJSON(w http.ResponseWriter) {
+	respData, err := json.Marshal(tr)
+	if err != nil {
+		log.Println("unable to marshal response data, falling back to ISE.")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(tr.status)
+	_, err = w.Write(respData)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+}
+
+func handle(err error, w http.ResponseWriter) {
+	log.Println(err)
+
+	// NOTE: We set the ErrData of the struct manually to map to the sentinel error for now
+	// this is done to prevent internal error leakage to the outside
+	// (consider error wrapping).
+	var resp TaskResponse
+
+	switch {
+	case errors.Is(err, models.ErrTaskNotFound):
+		// Task not found. Return 404
+		resp.status = http.StatusNotFound
+		resp.ErrData = models.ErrTaskNotFound.Error()
+		resp.WriteJSON(w)
+		return
+	case errors.Is(err, models.ErrBadData):
+		// Invalid data provided, return 400
+		resp.status = http.StatusBadRequest
+		resp.ErrData = models.ErrBadData.Error()
+		resp.WriteJSON(w)
+		return
+	default:
+		// Unhandled error, assume ISE for now
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }

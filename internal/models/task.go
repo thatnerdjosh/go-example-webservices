@@ -3,7 +3,6 @@ package models
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -36,9 +35,14 @@ func (t *TaskRequest) Process(cfg *config.TaskConfig, r *http.Request) error {
 
 func (t *TaskRequest) load(input []byte) error {
 	err := json.Unmarshal(input, &t)
-	if t.Name == "" {
-		err = ErrBadData
+	if err != nil {
 		log.Println(err)
+	}
+
+	if err != nil || t.Name == "" {
+		// Error to bubble up to end user
+		// TODO: Consider error wrapping along with error handling improvements.
+		err = ErrBadData
 	}
 
 	return err
@@ -47,10 +51,7 @@ func (t *TaskRequest) load(input []byte) error {
 func (t TaskRequest) run(cfg *config.TaskConfig) error {
 	taskItem := cfg.GetTask(t.Name)
 	if taskItem == nil {
-		err := ErrTaskNotFound
-		log.Println(err)
-		return err
-
+		return ErrTaskNotFound
 	}
 
 	// NOTE: typically not recommended, but should be ok since it is driven entirely by a config file (no user input).
@@ -59,7 +60,7 @@ func (t TaskRequest) run(cfg *config.TaskConfig) error {
 
 	_, err := cmd.Output()
 	if err != nil {
-		fmt.Println("could not run command: ", err)
+		log.Println("could not run command: ", err)
 		return err
 	}
 

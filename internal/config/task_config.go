@@ -50,7 +50,6 @@ func (t *TaskConfig) MustLoad() {
 
 	if host, has := os.LookupEnv("AUTH_API_HOST"); has {
 		authAPI.Host = host
-		fmt.Println(host)
 	}
 
 	if portStr, has := os.LookupEnv("AUTH_API_PORT"); has {
