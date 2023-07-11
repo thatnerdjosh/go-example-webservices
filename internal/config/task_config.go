@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -34,12 +33,12 @@ func (t *TaskConfig) MustLoad() {
 		t.ConfigPath = defaultConfigPath
 	}
 
-	yamlFile, err := ioutil.ReadFile(t.ConfigPath)
+	yamlFile, err := os.Open(t.ConfigPath)
 	if err != nil {
 		log.Fatalf("error: %v ", err)
 	}
 
-	err = yaml.Unmarshal(yamlFile, &t)
+	err = yaml.NewDecoder(yamlFile).Decode(&t)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
