@@ -48,6 +48,7 @@ func (t *TaskConfig) MustLoad() {
 		log.Fatalf("error: authAPI is not configured. Check dependency config.")
 	}
 
+	// TODO: Extract to main function
 	if host, has := os.LookupEnv("AUTH_API_HOST"); has {
 		authAPI.Host = host
 	}

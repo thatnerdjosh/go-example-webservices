@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -58,7 +59,8 @@ func (t TaskRequest) run(cfg *config.TaskConfig) error {
 	cmdParts := strings.Split(taskItem.Command, " ")
 	cmd := exec.Command(cmdParts[0], cmdParts[1:]...)
 
-	_, err := cmd.Output()
+	res, err := cmd.Output()
+	fmt.Println(string(res))
 	if err != nil {
 		log.Println("could not run command: ", err)
 		return err
