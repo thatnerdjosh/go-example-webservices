@@ -26,7 +26,7 @@ type TaskController struct {
 }
 
 var (
-	ErrUnauthorized = errors.New("request was not authorized")
+	ErrForbidden = errors.New("request was not authenticated")
 )
 
 func NewTaskController(taskConfig *config.TaskConfig, client HttpClient) TaskController {
@@ -57,7 +57,7 @@ func (t TaskController) ExecuteTask(w http.ResponseWriter, r *http.Request) {
 	var err error
 	authenticated, err := t.authenticated(r)
 	if err != nil || !authenticated {
-		handle(ErrUnauthorized, w)
+		handle(ErrForbidden, w)
 		return
 	}
 
@@ -112,6 +112,12 @@ func handle(err error, w http.ResponseWriter) {
 	var resp TaskResponse
 
 	switch {
+	case errors.Is(err, ErrForbidden):
+		// Unauthenticated. Return 403
+		resp.status = http.StatusForbidden
+		resp.ErrData = ErrForbidden.Error()
+		resp.WriteJSON(w)
+		return
 	case errors.Is(err, models.ErrTaskNotFound):
 		// Task not found. Return 404
 		resp.status = http.StatusNotFound

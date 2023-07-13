@@ -33,7 +33,7 @@ func baseChecks(t *testing.T, rr *httptest.ResponseRecorder) {
 
 func TestNotFoundHandler(t *testing.T) {
 	controller := controllers.NewTaskController(&config.TaskConfig{
-		ConfigPath: "../../config/tasks.yaml",
+		ConfigPath: "testdata/config/tasks.yaml",
 	}, &MockAuthHttpClient{})
 	t.Run("404 - Not Found", func(t *testing.T) {
 		req, err := http.NewRequest(
@@ -58,7 +58,7 @@ func TestNotFoundHandler(t *testing.T) {
 
 func TestExecuteTask(t *testing.T) {
 	controller := controllers.NewTaskController(&config.TaskConfig{
-		ConfigPath: "../../config/tasks.yaml",
+		ConfigPath: "testdata/config/tasks.yaml",
 	}, &MockAuthHttpClient{})
 
 	// TODO: Extract to contract tests
@@ -138,7 +138,7 @@ func TestExecuteTask(t *testing.T) {
 
 	t.Run("200 - execute valid task", func(t *testing.T) {
 		// TODO: Extract to fixtures
-		data := `{"name": "restart task api"}`
+		data := `{"name": "hello world"}`
 		req, err := http.NewRequest(
 			"POST", "/", bytes.NewBuffer([]byte(data)))
 		if err != nil {

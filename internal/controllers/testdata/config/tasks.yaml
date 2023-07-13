@@ -1,0 +1,11 @@
+---
+dependencies:
+  authAPI:
+    host: auth
+    port: 8080
+    tls: false
+
+tasks:
+  - name: hello world
+    command: echo "hello world"
+...
