@@ -6,8 +6,6 @@ dependencies:
     tls: false
 
 tasks:
-  - name: restart task api
-    command: docker compose restart task-webhook
-  - name: restart auth api
-    command: docker compose restart auth
+  - name: test network connectivity
+    command: ping -c3 1.1.1.1
 ...
