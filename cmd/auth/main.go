@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
@@ -8,10 +9,16 @@ import (
 )
 
 const (
+	defaultHost string = "127.0.0.1"
 	defaultPort string = "8080"
 )
 
 func main() {
+	host := defaultHost
+	if h, has := os.LookupEnv("AUTH_API_HOST"); has {
+		host = h
+	}
+
 	port := defaultPort
 	if p, has := os.LookupEnv("AUTH_API_PORT"); has {
 		port = p
@@ -23,12 +30,9 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	//wrappedMux := middleware.WrapLogger(mux)
-
 	httpServer := http.Server{
-		Addr:    ":" + port,
+		Addr:    fmt.Sprintf("%s:%s", host, port),
 		Handler: mux,
-		//Handler: wrappedMux,
 	}
 
 	core.StartHTTPServer(&httpServer)
