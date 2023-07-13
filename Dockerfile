@@ -13,8 +13,8 @@ RUN CGO_ENABLED=0 \
 RUN CGO_ENABLED=0 \
     go build -ldflags="-s -w" -o auth ./cmd/auth/main.go
 
-FROM docker:cli
+FROM alpine
 WORKDIR /opt/go-example-webservices
-COPY ./docker-compose.yaml .
 COPY --from=build-env /app/task-webhook .
 COPY --from=build-env /app/auth .
+EXPOSE 8080
