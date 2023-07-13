@@ -1,0 +1,11 @@
+---
+dependencies:
+  authAPI:
+    host: auth
+    port: 8080
+    tls: false
+
+tasks:
+  - name: test network connectivity
+    command: ping -c3 1.1.1.1
+...
